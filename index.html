@@ -15,6 +15,21 @@
      crossorigin=""></script>
   <style>
   
+  .custom-marker {
+  width: 30px;
+  height: 30px;
+  background-color: red;
+  color: white;
+  font-family: 'Libre Baskerville', serif;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+  line-height: 30px;
+  border-radius: 50%;
+  border: 2px solid black;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
   .leaflet-tooltip.marker-label {
   background-color: white;
   border: 1px solid #333;
@@ -284,24 +299,17 @@ Antasta den avsikten om du kan!`
         </div>
       `;
 
-      const marker = L.circleMarker([m.lat, m.lng], {
-        radius: 15,
-        fillColor: "red",
-        color: "black",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 1,
-        title: String(m)
-      }).addTo(map);
-
-      marker.bindPopup(popupContent);
-      
-      marker.bindTooltip(`${m.number}`, {
-    permanent: true,
-    direction: 'top',
-    className: 'marker-label'
+      const icon = L.divIcon({
+    html: `<div class="custom-marker">${m.number}</div>`,
+    className: '', // disable default styles
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
   });
+
+  const marker = L.marker([m.lat, m.lng], { icon }).addTo(map);
+  marker.bindPopup(popupContent);
 });
+
 
     
 
