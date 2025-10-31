@@ -82,12 +82,7 @@ html, body, #map {
 
   
   <script>
-    const map = L.map('map').setView([60.6189135, 16.7788006], 15);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
+    
     const markers = [
         {
     number: 1,
@@ -287,21 +282,29 @@ Antasta den avsikten om du kan!`
   }
       /* Insert your marker data here — same as in your original code */];
 
-    markers.forEach(m => {
-      const popupContent = `
-        <div>
-          <h2>${m.title}</h2>
-          <p>${m.description}</p>
-          #Läs dikten</a>
-          <div class="poem">
-            <p style="white-space: pre-wrap;">${m.poem}</p>
-          </div>
-        </div>
-      `;
+const map = L.map('map').setView([60.6189135, 16.7788006], 15);
 
-      const icon = L.divIcon({
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap & CartoDB',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+markers.forEach(m => {
+  const popupContent = `
+    <div>
+      <h2>${m.title}</h2>
+      <p>${m.description}</p>
+      #Läs dikten</a>
+      <div class="poem">
+        <p style="white-space: pre-wrap;">${m.poem}</p>
+      </div>
+    </div>
+  `;
+
+  const icon = L.divIcon({
     html: `<div class="custom-marker">${m.number}</div>`,
-    className: '', // disable default styles
+    className: '',
     iconSize: [30, 30],
     iconAnchor: [15, 15]
   });
@@ -310,24 +313,27 @@ Antasta den avsikten om du kan!`
   marker.bindPopup(popupContent);
 });
 
+// ✅ Attach toggle logic when popup opens
+map.on('popupopen', function(e) {
+  const link = e.popup._contentNode.querySelector('.toggle-poem');
+  const poemDiv = e.popup._contentNode.querySelector('.poem');
 
-    
+  if (link && poemDiv) {
+    link.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      const isOpen = poemDiv.style.maxHeight && poemDiv.style.maxHeight !== "0px";
 
-    document.addEventListener("click", (e) => {
-      if (e.target.matches(".toggle-poem")) {
-        e.preventDefault();
-        const poemDiv = e.target.nextElementSibling;
-        const isOpen = poemDiv.style.maxHeight && poemDiv.style.maxHeight !== "0px";
-
-        if (isOpen) {
-          poemDiv.style.maxHeight = "0px";
-          e.target.textContent = "Läs dikten";
-        } else {
-          poemDiv.style.maxHeight = poemDiv.scrollHeight + "px";
-          e.target.textContent = "Dölj dikten";
-        }
+      if (isOpen) {
+        poemDiv.style.maxHeight = "0px";
+        link.textContent = "Läs dikten";
+      } else {
+        poemDiv.style.maxHeight = poemDiv.scrollHeight + "px";
+        link.textContent = "Dölj dikten";
       }
     });
+  }
+});
+
   </script>
 </body>
 </html>
