@@ -1,1 +1,149 @@
- 
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>STADENS POESI - en vandring till åtta dikter av STIG SJÖDIN</title>
+  https://fonts.googleapis.com/css?family=Libre+Baskerville
+  https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
+  https://unpkg.com/leaflet@1.9.4/dist/leaflet.js</script>
+  <style>
+    body, html, #map {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100vw;
+    }
+
+    .custom-marker {
+      width: 30px;
+      height: 30px;
+      background-color: #EB5406;
+      color: black;
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1rem;
+      font-weight: bold;
+      text-align: center;
+      line-height: 30px;
+      border-radius: 50%;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .leaflet-tooltip.marker-label {
+      background-color: white;
+      border: 1px solid #333;
+      padding: 2px 6px;
+      font-family: 'Libre Baskerville', serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: black;
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .poem {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .toggle-poem {
+      display: inline-block;
+      margin-top: 0.5em;
+      color: #0077cc;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    #reset-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background-color: white;
+      border: 1px solid #333;
+      padding: 6px 12px;
+      font-family: 'Libre Baskerville', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <button id="reset-btn">Återställ vandring</button>
+  <div id="map"></div>
+
+  <script>
+    const visited = JSON.parse(localStorage.getItem("visitedMarkers")) || [];
+
+    const markers = [/* ... dina markerdata här, samma som tidigare ... */];
+
+    const map = L.map('map').setView([60.6189135, 16.7788006], 15);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+      maxZoom: 19
+    }).addTo(map);
+
+    markers.forEach(m => {
+      const isUnlocked = m.number === 1 || visited.includes(m.number - 1);
+
+      const popupContent = `
+        <div>
+          <h2>${m.title}</h2>
+          <p>${m.description}</p>
+          #Läs dikten</a>
+          <div class="poem">
+            <p style="white-space: pre-wrap;">${m.poem}</p>
+          </div>
+        </div>
+      `;
+
+      const icon = L.divIcon({
+        html: `<div class="custom-marker" style="opacity:${isUnlocked ? 1 : 0.4}">${m.number}</div>`,
+        className: '',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+
+      const marker = L.marker([m.lat, m.lng], { icon }).addTo(map);
+
+      if (isUnlocked) {
+        marker.bindPopup(popupContent);
+        marker.on('popupopen', () => {
+          if (!visited.includes(m.number)) {
+            visited.push(m.number);
+            localStorage.setItem("visitedMarkers", JSON.stringify(visited));
+            location.reload(); // uppdatera för att låsa upp nästa
+          }
+        });
+      }
+    });
+
+    map.on('popupopen', function(e) {
+      const link = e.popup._contentNode.querySelector('.toggle-poem');
+      const poemDiv = e.popup._contentNode.querySelector('.poem');
+
+      if (link && poemDiv) {
+        link.addEventListener('click', function(ev) {
+          ev.preventDefault();
+          const isOpen = poemDiv.style.maxHeight && poemDiv.style.maxHeight !== "0px";
+
+          if (isOpen) {
+            poemDiv.style.maxHeight = "0px";
+            link.textContent = "Läs dikten";
+          } else {
+            poemDiv.style.maxHeight = poemDiv.scrollHeight + "px";
+            link.textContent = "Dölj dikten";
+          }
+        });
+      }
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      localStorage.removeItem("visitedMarkers");
+      location.reload();
+    });
+  </script>
+</body>
+</html>
